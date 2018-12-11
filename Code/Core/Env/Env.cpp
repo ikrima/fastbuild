@@ -6,6 +6,11 @@
 #include "Core/PrecompiledHeader.h"
 
 #include "Env.h"
+// @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+#include "Core/FileIO/FileIO.h"
+#include "Core/Tracing/Tracing.h"
+#include "Core/FileIO/PathUtils.h"
+// @third party code - End Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
 
 // Core
 #include "Core/Strings/AStackString.h"
@@ -110,6 +115,77 @@
         #error Unknown platform
     #endif
 }
+
+
+// @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+// GetEnvVarsFromConfig
+//------------------------------------------------------------------------------
+/*static*/ bool Env::GetEnvVarsFromConfig(AString &cfgBrokeragePath, AString &cfgCachePath, AString &cfgCacheMode)
+{
+    AStackString<> cfgTomlPath;
+    Env::GetExePath(cfgTomlPath);
+	PathUtils::FixupFilePath(cfgTomlPath);
+	const char * lastSlash = cfgTomlPath.FindLast(NATIVE_SLASH);
+	if (lastSlash)
+	{
+		cfgTomlPath.SetLength((uint32_t)(lastSlash - cfgTomlPath.Get() + 1));
+	}
+    else
+    {
+		OUTPUT("ERROR: Current exe path does not have trailing slash");        
+    }
+    
+    cfgTomlPath += "config.toml";
+    OUTPUT("Looking for config.toml at [%s]\n", cfgTomlPath.Get());
+    if (FileIO::FileExists(cfgTomlPath.Get()))
+    {
+        FileStream f;
+        if (f.Open(cfgTomlPath.Get(), FileStream::READ_ONLY))
+        {
+            AStackString<1024> tomlBuffer;
+            Array<AString> cfgTokens;
+            Array<AString> tokenValuePair(2);
+
+            tomlBuffer.SetLength((uint32_t)f.GetFileSize());
+            if (f.ReadBuffer(tomlBuffer.Get(), min(1024, f.GetFileSize()) ))
+            {
+                tomlBuffer.Tokenize(cfgTokens, '\n');
+                for (const AString &cfgToken : cfgTokens)
+                {
+                    cfgToken.Tokenize(tokenValuePair, '=');
+					if (tokenValuePair[1].EndsWith('\r'))
+					{
+						tokenValuePair[1].Trim(0, 1);
+					}
+
+                         if (tokenValuePair[0] == "FASTBUILD_BROKERAGE_PATH") { cfgBrokeragePath = tokenValuePair[1]; cfgBrokeragePath.SetLength(tokenValuePair[1].GetLength()); }
+                    else if (tokenValuePair[0] == "FASTBUILD_CACHE_PATH")     { cfgCachePath     = tokenValuePair[1]; cfgCachePath.SetLength(tokenValuePair[1].GetLength());     }
+                    else if (tokenValuePair[0] == "FASTBUILD_CACHE_MODE")     { cfgCacheMode     = tokenValuePair[1]; cfgCacheMode.SetLength(tokenValuePair[1].GetLength());     }
+                    else
+                    {
+                        OUTPUT("ERROR: Unrecognized configuration parameter in config.toml file '%s'\n", cfgToken.Get());
+                    }
+                }
+                f.Close();
+
+                OUTPUT("TOML CONFIG VALUES:\n FASTBUILD_BROKERAGE_PATH=%s\n FASTBUILD_CACHE_PATH=%s\n FASTBUILD_CACHE_MODE=%s\n------------\n", cfgBrokeragePath.Get(), cfgCachePath.Get(), cfgCacheMode.Get());
+                return true;
+            }
+            else
+            {
+                OUTPUT("ERROR: Could not read config.toml file\n");
+            }
+        }
+        else 
+        {
+            OUTPUT("ERROR: Could not open config.toml file\n");
+        }
+    }
+    
+    return false;
+}
+// @third party code - End Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+
 
 // GetEnvVariable
 //------------------------------------------------------------------------------

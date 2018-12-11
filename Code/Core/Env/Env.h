@@ -29,7 +29,10 @@ public:
     static inline const char * GetPlatformName() { return GetPlatformName( GetPlatform() ); }
 
     static uint32_t GetNumProcessors();
-
+    
+    // @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+    static bool GetEnvVarsFromConfig(AString &outCfgBrokeragePath, AString &outCfgCachePath, AString &outCfgCacheMode);
+    // @third party code - End Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
     static bool GetEnvVariable( const char * envVarName, AString & envVarValue );
     static bool SetEnvVariable( const char * envVarName, const AString & envVarValue );
     static void GetCmdLine( AString & cmdLine );

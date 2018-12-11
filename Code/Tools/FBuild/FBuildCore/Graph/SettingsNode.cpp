@@ -45,8 +45,14 @@ SettingsNode::SettingsNode()
 , m_DistributableJobMemoryLimitMiB( DIST_MEMORY_LIMIT_DEFAULT )
 , m_AllowDBMigration_Experimental( false )
 {
-    // Cache path from environment
-    Env::GetEnvVariable( "FASTBUILD_CACHE_PATH", m_CachePathFromEnvVar );
+    // @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+    AStackString<> cfgBrokeragePath, cfgCacheMode;
+    if (!Env::GetEnvVarsFromConfig(cfgBrokeragePath, m_CachePathFromEnvVar, cfgCacheMode))
+    {
+        // Cache path from environment
+        Env::GetEnvVariable( "FASTBUILD_CACHE_PATH", m_CachePathFromEnvVar );
+    }
+    // @third party code - End Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
 }
 
 // Initialize

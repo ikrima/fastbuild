@@ -65,7 +65,7 @@ NO_INLINE void SmallBlockAllocator::InitBuckets()
     {
         const size_t size = BUCKET_ALIGNMENT * ( i + 1 );
         MemBucket * bucket = &s_Buckets[ i ];
-        new (bucket) MemBucket( size, BUCKET_ALIGNMENT );
+        INPLACE_NEW (bucket) MemBucket( size, BUCKET_ALIGNMENT );
     }
 }
 

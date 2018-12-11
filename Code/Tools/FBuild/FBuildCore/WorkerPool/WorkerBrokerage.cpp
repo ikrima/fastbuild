@@ -21,6 +21,10 @@
 #include "Core/Strings/AStackString.h"
 #include "Core/Process/Thread.h"
 
+// @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+#include "Core/Tracing/Tracing.h"
+// @third party code - End Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+
 // CONSTRUCTOR
 //------------------------------------------------------------------------------
 WorkerBrokerage::WorkerBrokerage()
@@ -47,7 +51,16 @@ void WorkerBrokerage::Init()
 
     // root folder
     AStackString<> root;
-    if ( Env::GetEnvVariable( "FASTBUILD_BROKERAGE_PATH", root ) )
+
+    // @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+    AStackString<> cfgCachePath, cfgCacheMode;
+    if (!Env::GetEnvVarsFromConfig(root, cfgCachePath, cfgCacheMode))
+    {
+        Env::GetEnvVariable("FASTBUILD_BROKERAGE_PATH", root);
+    }
+
+    if (!root.IsEmpty())
+    // @third party code - End Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
     {
         // <path>/<group>/<version>/
         #if defined( __WINDOWS__ )

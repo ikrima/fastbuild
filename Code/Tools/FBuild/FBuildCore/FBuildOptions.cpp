@@ -78,6 +78,14 @@ FBuildOptions::OptionsResult FBuildOptions::ProcessCommandLine( int argc, char *
                 m_UseCacheWrite = true;
                 continue;
             }
+			// @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Add force cache disable option
+			else if (thisArg == "-cachedisable")
+			{
+				m_UseCacheRead = false;
+				m_UseCacheWrite = false;
+				continue;
+			}
+			// @third party code - END Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Add force cache disable option
             else if ( thisArg == "-cacheread" )
             {
                 m_UseCacheRead = true;
@@ -343,7 +351,15 @@ FBuildOptions::OptionsResult FBuildOptions::ProcessCommandLine( int argc, char *
     if ( ( m_UseCacheRead == false ) && ( m_UseCacheWrite == false ) )
     {
         AStackString<> cacheMode;
-        if ( Env::GetEnvVariable( "FASTBUILD_CACHE_MODE", cacheMode ) )
+        // @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
+        AStackString<> cfgBrokeragePath, cfgCachePath;
+        if (!Env::GetEnvVarsFromConfig(cfgBrokeragePath, cfgCachePath, cacheMode))
+        {
+            Env::GetEnvVariable( "FASTBUILD_CACHE_MODE", cacheMode );
+        }
+
+        if ( !cacheMode.IsEmpty() )
+        // @third party code - End Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
         {
             if ( cacheMode == "r" )
             {
@@ -358,6 +374,13 @@ FBuildOptions::OptionsResult FBuildOptions::ProcessCommandLine( int argc, char *
                 m_UseCacheRead = true;
                 m_UseCacheWrite = true;
             }
+			// @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Add force cache disable option
+			else if ( cacheMode == "d" )
+			{
+				m_UseCacheRead = false;
+				m_UseCacheWrite = false;
+			}
+			// @third party code - END Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Add force cache disable option
             else
             {
                 OUTPUT( "FASTBUILD_CACHE_MODE is invalid (%s)\n", cacheMode.Get() );
