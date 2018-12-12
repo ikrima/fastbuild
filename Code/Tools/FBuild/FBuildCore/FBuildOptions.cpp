@@ -58,6 +58,7 @@ FBuildOptions::OptionsResult FBuildOptions::ProcessCommandLine( int argc, char *
     bool progressOptionSpecified = false;
 
     // Parse options
+	bool bCachePassedInCmdline = false;
     for ( int32_t i=1; i<argc; ++i ) // start from 1 to skip exe name
     {
         AStackString<> thisArg( argv[ i ] );
@@ -76,6 +77,7 @@ FBuildOptions::OptionsResult FBuildOptions::ProcessCommandLine( int argc, char *
             {
                 m_UseCacheRead = true;
                 m_UseCacheWrite = true;
+				bCachePassedInCmdline = true;
                 continue;
             }
 			// @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Add force cache disable option
@@ -83,17 +85,20 @@ FBuildOptions::OptionsResult FBuildOptions::ProcessCommandLine( int argc, char *
 			{
 				m_UseCacheRead = false;
 				m_UseCacheWrite = false;
+				bCachePassedInCmdline = true;
 				continue;
 			}
 			// @third party code - END Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Add force cache disable option
             else if ( thisArg == "-cacheread" )
             {
                 m_UseCacheRead = true;
+				bCachePassedInCmdline = true;
                 continue;
             }
             else if ( thisArg == "-cachewrite" )
             {
                 m_UseCacheWrite = true;
+				bCachePassedInCmdline = true;
                 continue;
             }
             else if ( thisArg == "-cacheinfo" )
@@ -348,7 +353,7 @@ FBuildOptions::OptionsResult FBuildOptions::ProcessCommandLine( int argc, char *
     }
 
     // cache mode environment variable (if not supplied on cmd line)
-    if ( ( m_UseCacheRead == false ) && ( m_UseCacheWrite == false ) )
+    if ( !bCachePassedInCmdline )
     {
         AStackString<> cacheMode;
         // @third party code - BEGIN Bebylon - #ThirdParty-Fastbuild: SettingsConfigFile - Workaround for our deployment process
